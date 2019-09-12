@@ -1,13 +1,24 @@
-#include <linux/i2c.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
+#include <linux/i2c.h>
 
+
+static const char CTRL_MEAS_ADDR = 0xF4;
+static const char MODE = 0x3;
+static const char OSRS_P = 0x0 << 2;
+static const char OSRS_T = 0x1 << 5;
 
 struct comp_params {
 	unsigned short dig_T1;
 	short dig_T2;
 	short dig_T3;
 };
+
+static int init_sensor(struct i2c_client *client) {
+	const char opts[] = {CTRL_MEAS_ADDR, MODE | OSRS_P | OSRS_T};
+
+	return i2c_master_send(client, opts, 2);
+}
 
 static int read_data(struct i2c_client *client, char *buf, char start_addr, int count) {
 	int ret = 0;
@@ -38,7 +49,6 @@ static struct comp_params get_comp_params(struct i2c_client *client) {
 }
 
 // Returns temperature in DegC, resolution is 0.01 DegC. Output value of “5123” equals 51.23 DegC.
-// t_fine carries fine temperature as global value
 static int compensate_temp(int adc_T, struct comp_params *params)
 {
 	unsigned short dig_T1 = params->dig_T1;
@@ -52,37 +62,64 @@ static int compensate_temp(int adc_T, struct comp_params *params)
 	return T;
 }
 
-static int i2c_bme_probe(struct i2c_client *client, const struct i2c_device_id *id) {
+
+
+static int get_temp(struct i2c_client *client)
+{
 	char recv_buf[3];
 	int ret;
 	int uncomp_temp;
+
 	struct comp_params params = get_comp_params(client);
-	pr_info("%s probe\n", client->name);
 	ret = read_data(client, recv_buf, 0xFA, 3);
 	if (ret < 0) {
 		pr_err("Unable ro read temp: %d\n", ret);
 	}
 	uncomp_temp = recv_buf[0] << 12 | recv_buf[1] << 4 | ((recv_buf[2] >> 4) & 0x0F0);
 	ret = compensate_temp(uncomp_temp, &params);
-	pr_info("%02X %02X %02X\n", recv_buf[0], recv_buf[1], recv_buf[2]);
-	pr_info("Uncomp temp: %d\n", uncomp_temp);
-	pr_info("Temp: %d\n", ret);
-	return 0;
+	return ret;
+}
+
+static ssize_t show_temp(struct device *dev,struct device_attribute *attr, char *buf)
+{
+	int temp;
+	struct i2c_client *client = to_i2c_client(dev);
+	// get temperature from sensor
+	temp = get_temp(client);
+	return sprintf(buf, "%d\n", temp);
 }
 
 
+static struct device_attribute dev_attr_temp = {
+	.attr = {
+		.name = "temperature",
+		.mode = S_IRUGO,
+	},
+	.show = show_temp,
+};
+
+
+static int i2c_bme_probe(struct i2c_client *client, const struct i2c_device_id *id) {
+	int ret;
+	// create temperature file
+	ret = device_create_file(&client->dev, &dev_attr_temp);
+	init_sensor(client);		
+	pr_info("%s probe\n", client->name);
+	return 0;
+}
 static int i2c_bme_remove(struct i2c_client *client) {
+	device_remove_file(&client->dev, &dev_attr_temp);
 	pr_info("%s remove", client->name);
 	return 0;
 }
 
-
-
+// Für welche devices zuständg
 static struct i2c_device_id i2c_bme_id[] = {
 	{"bme280", 0x76},
 	{ }
 };
 
+// register id in kernel
 MODULE_DEVICE_TABLE(i2c, i2c_bme_id);
 
 static struct i2c_driver i2c_bme_driver = { 
@@ -94,6 +131,7 @@ static struct i2c_driver i2c_bme_driver = {
 	.id_table = i2c_bme_id,
 };
 
+// init makro
 module_i2c_driver(i2c_bme_driver);
 
 MODULE_AUTHOR("Some humans");
