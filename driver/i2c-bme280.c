@@ -68,15 +68,15 @@ static int get_temp(struct i2c_client *client)
 	char recv_buf[3];
 	int ret;
 	int uncomp_temp;
-
-	struct comp_params params = get_comp_params(client);
+	struct comp_params *params = i2c_get_clientdata(client);
+	
 	init_sensor(client);
 	ret = read_data(client, recv_buf, 0xFA, 3);
 	if (ret < 0) {
 		pr_err("Unable ro read temp: %d\n", ret);
 	}
 	uncomp_temp = recv_buf[0] << 12 | recv_buf[1] << 4 | ((recv_buf[2] >> 4) & 0x0F0);
-	ret = compensate_temp(uncomp_temp, &params);
+	ret = compensate_temp(uncomp_temp, params);
 	return ret;
 }
 
@@ -101,6 +101,13 @@ static struct device_attribute dev_attr_temp = {
 
 static int i2c_bme_probe(struct i2c_client *client, const struct i2c_device_id *id) {
 	int ret;
+	struct comp_params *params;
+	struct comp_params params_stack = get_comp_params(client);
+	params = devm_kzalloc(&client->dev, sizeof(struct comp_params), GFP_KERNEL);
+	if (!params)
+		return -ENOMEM;
+	memcpy(params, &params_stack, sizeof(*params));
+	i2c_set_clientdata(client, params);
 	// create temperature file
 	ret = device_create_file(&client->dev, &dev_attr_temp);
 	pr_info("%s probe\n", client->name);
