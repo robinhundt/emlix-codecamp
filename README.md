@@ -2,7 +2,7 @@
 To enable i2c, mount the boot partition to "/mnt":
 
 ```
-mount /dev/sdX1 /mnt
+mount /dev/mmcblk0p1 /mnt
 ```
 and open the `config.txt` file.
 ```
