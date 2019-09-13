@@ -4,7 +4,7 @@
 
 
 static const char CTRL_MEAS_ADDR = 0xF4;
-static const char MODE = 0x3;
+static const char MODE = 0x1;
 static const char OSRS_P = 0x0 << 2;
 static const char OSRS_T = 0x1 << 5;
 
@@ -62,8 +62,6 @@ static int compensate_temp(int adc_T, struct comp_params *params)
 	return T;
 }
 
-
-
 static int get_temp(struct i2c_client *client)
 {
 	char recv_buf[3];
@@ -71,6 +69,7 @@ static int get_temp(struct i2c_client *client)
 	int uncomp_temp;
 
 	struct comp_params params = get_comp_params(client);
+	init_sensor(client);
 	ret = read_data(client, recv_buf, 0xFA, 3);
 	if (ret < 0) {
 		pr_err("Unable ro read temp: %d\n", ret);
@@ -103,7 +102,6 @@ static int i2c_bme_probe(struct i2c_client *client, const struct i2c_device_id *
 	int ret;
 	// create temperature file
 	ret = device_create_file(&client->dev, &dev_attr_temp);
-	init_sensor(client);		
 	pr_info("%s probe\n", client->name);
 	return 0;
 }
