@@ -1,11 +1,13 @@
 #!/usr/bin/env python
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-import SocketServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
+from os import environ
 
-class S(BaseHTTPRequestHandler):
+SYSFS_TEMPERATURE_FILE = environ.get("SYSFS_TEMPERATURE_FILE", "/sys/devices/platform/soc/20804000.i2c/i2c-1/1-0076/temperature")
+
+class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
     def _read_data(self):
-        f = open("test.txt", "r")
+        f = open(SYSFS_TEMPERATURE_FILE, "r")
         result = {
             "temperature": f.readline().splitlines()[0]
         }
@@ -18,15 +20,17 @@ class S(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self._set_headers()
-        self.wfile.write(json.dumps(self._read_data()))
+        self.wfile.write(json.dumps(self._read_data()).encode())
 
     def do_HEAD(self):
         self._set_headers()
 
-def run(server_class=HTTPServer, handler_class=S, port=80):
-    server_address = ('', port)
-    httpd = server_class(server_address, handler_class)
-    print 'Starting server...'
+def run():
+    print('starting server...')
+
+    server_address = ('127.0.0.1', 80)
+    httpd = HTTPServer(server_address, testHTTPServer_RequestHandler)
+    print('running server...')
     httpd.serve_forever()
 
 if __name__ == "__main__":
