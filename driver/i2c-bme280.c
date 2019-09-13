@@ -4,6 +4,7 @@
 
 
 static const char CTRL_MEAS_ADDR = 0xF4;
+static const char COMP_PARPAM_ADDR = 0x88;
 static const char MODE = 0x1;
 static const char OSRS_P = 0x0 << 2;
 static const char OSRS_T = 0x1 << 5;
@@ -36,7 +37,7 @@ static int read_data(struct i2c_client *client, char *buf, char start_addr, int 
 static struct comp_params get_comp_params(struct i2c_client *client) {
 	char buf[6];
 	int ret;
-	ret = read_data(client, buf, 0x88, 6);
+	ret = read_data(client, buf, COMP_PARPAM_ADDR, 6);
 	if (ret < 0) {
 		pr_err("Unable ro read comp params: %d\n", ret);
 	}
