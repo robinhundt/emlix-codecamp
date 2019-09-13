@@ -101,12 +101,10 @@ static struct device_attribute dev_attr_temp = {
 
 static int i2c_bme_probe(struct i2c_client *client, const struct i2c_device_id *id) {
 	int ret;
-	struct comp_params *params;
-	struct comp_params params_stack = get_comp_params(client);
-	params = devm_kzalloc(&client->dev, sizeof(struct comp_params), GFP_KERNEL);
+	struct comp_params *params = devm_kzalloc(&client->dev, sizeof(struct comp_params), GFP_KERNEL);
 	if (!params)
 		return -ENOMEM;
-	memcpy(params, &params_stack, sizeof(*params));
+	*params = get_comp_params(client);
 	i2c_set_clientdata(client, params);
 	// create temperature file
 	ret = device_create_file(&client->dev, &dev_attr_temp);
