@@ -22,7 +22,8 @@ dtparam=i2c_arm=on
 # How to start on boot
 ```
 cd /etc/rc5.d/
-ln -s ~/start.sh S99start-ambiant.sh
+echo /home/start.sh > S99start-ambiant.sh
+chmod a+x S99start-ambiant.sh
 ```
 
 # How to start efficiently
