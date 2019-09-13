@@ -10,7 +10,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         temp = -666
         with open(SYSFS_TEMPERATURE_FILE, "r") as f:
             temp = int(f.readline().splitlines()[0])/100
-        temp_out = temp + " C"
+        temp_out = str(temp) + " C"
 
         result = {
             "temperature": temp_out
