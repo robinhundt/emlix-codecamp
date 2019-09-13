@@ -7,11 +7,13 @@ SYSFS_TEMPERATURE_FILE = "/sys/devices/platform/soc/20804000.i2c/i2c-1/1-0076/te
 
 class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
     def _read_data(self):
-        f = open(SYSFS_TEMPERATURE_FILE, "r")
-        temp = int(f.readline().splitlines()[0])/100
+        temp = -666
+        with open(SYSFS_TEMPERATURE_FILE, "r") as f:
+            temp = int(f.readline().splitlines()[0])/100
+        temp_out = str(temp) + " C"
 
         result = {
-            "temperature": f.readline().splitlines()[0]
+            "temperature": temp_out
         }
         return result
 
