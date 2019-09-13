@@ -12,7 +12,10 @@ dtparam=i2c_arm=on
 ```
 
 # How to start efficiently
-Start ./start.sh
+Start 
+```
+./start.sh
+```
 
 # How to start manually
 In Raspi, start I2C modules 
