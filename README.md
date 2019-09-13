@@ -10,6 +10,7 @@ echo "bme280 0x76" > /sys/bus/i2c/devices/i2c-1/new_device
 Start webserver
 
 ```
+iptables -P INPUT ACCEPT
 python3 /home/server.py
 ```
 
