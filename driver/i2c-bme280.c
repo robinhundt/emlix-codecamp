@@ -3,11 +3,11 @@
 #include <linux/i2c.h>
 
 
-static const char CTRL_MEAS_ADDR = 0xF4;
-static const char COMP_PARPAM_ADDR = 0x88;
-static const char MODE = 0x1;
-static const char OSRS_P = 0x0 << 2;
-static const char OSRS_T = 0x1 << 5;
+#define CTRL_MEAS_ADDR 0xF4
+#define COMP_PARPAM_ADDR 0x88
+#define MODE 0x1
+#define OSRS_P 0x0 << 2
+#define OSRS_T 0x1 << 5
 
 struct comp_params {
 	unsigned short dig_T1;
