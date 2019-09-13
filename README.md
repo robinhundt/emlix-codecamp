@@ -10,20 +10,19 @@ echo "bme280 0x76" > /sys/bus/i2c/devices/i2c-1/new_device
 Start webserver
 
 ```
-python /home/server.py
+python3 /home/server.py
 ```
 
 Read from server
 
 ```
-wget 127.0.0.1:80
-cat index.html
+wget -qO- stdout 127.0.0.1:80
 ```
 
 Start ambient light 
 
 ```
-python /home/ambient-light.py -c
+python3 /home/ambient-light.py -c
 ```
 
 See temperature output on console
