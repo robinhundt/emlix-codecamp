@@ -23,7 +23,7 @@ cat index.html
 Start ambient light 
 
 ```
-python /home/ambient-light.py
+python /home/ambient-light.py -c
 ```
 
 See temperature output on console
