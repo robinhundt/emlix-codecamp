@@ -33,6 +33,12 @@ def colorWipe(strip, color, wait_ms=50):
         strip.show()
         time.sleep(wait_ms / 1000.0)
 
+def colorCircle(strip, colors, wait_ms=50):
+    for i in range(strip.numPixels()):
+        strip.setPixelColor(i, colors[i % len(colors)])
+        strip.show()
+        time.sleep(wait_ms / 1000.0)
+
 # Main program logic follows:
 if __name__ == '__main__':
     # Process arguments
@@ -48,6 +54,8 @@ if __name__ == '__main__':
     print('Press Ctrl-C to quit.')
     if not args.clear:
         print('Use "-c" argument to clear LEDs on exit')
+
+    colorCircle(strip, [Color(55, 0, 0), Color(0, 55, 0), Color(0, 0, 55)])
 
     try:
 
