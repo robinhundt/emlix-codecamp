@@ -1,5 +1,20 @@
-# How to start
+# Preconfigure
+To enable i2c, mount the boot partition and open the `config.txt` file. Search for `i2c` and change the line 
 
+```
+#dtparam=i2c_arm=off
+```
+
+to 
+
+```
+dtparam=i2c_arm=on
+```
+
+# How to start efficiently
+Start ./start.sh
+
+# How to start manually
 In Raspi, start I2C modules 
 
 ```
