@@ -3,11 +3,13 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 from os import environ
 
-SYSFS_TEMPERATURE_FILE = environ.get("SYSFS_TEMPERATURE_FILE", "/sys/devices/platform/soc/20804000.i2c/i2c-1/1-0076/temperature")
+SYSFS_TEMPERATURE_FILE = "/sys/devices/platform/soc/20804000.i2c/i2c-1/1-0076/temperature"
 
 class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
     def _read_data(self):
         f = open(SYSFS_TEMPERATURE_FILE, "r")
+        temp = int(f.readline().splitlines()[0])/100
+
         result = {
             "temperature": f.readline().splitlines()[0]
         }
