@@ -16,8 +16,7 @@ python /home/server.py
 Read from server
 
 ```
-wget 127.0.0.1:80
-cat index.html
+wget -qO- stdout 127.0.0.1:80
 ```
 
 Start ambient light 
