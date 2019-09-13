@@ -1,6 +1,14 @@
 # Preconfigure
-To enable i2c, mount the boot partition and open the `config.txt` file. Search for `i2c` and change the line 
+To enable i2c, mount the boot partition to "/mnt":
 
+```
+mount /dev/sdX1 /mnt
+```
+and open the `config.txt` file.
+```
+vi /mnt/config.txt
+```
+Search for `i2c` and change the line 
 ```
 #dtparam=i2c_arm=off
 ```
