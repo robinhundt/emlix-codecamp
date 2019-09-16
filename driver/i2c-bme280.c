@@ -6,8 +6,8 @@
 #define CTRL_MEAS_ADDR 0xF4
 #define COMP_PARPAM_ADDR 0x88
 #define MODE 0x1
-#define OSRS_P 0x0 << 2
-#define OSRS_T 0x1 << 5
+#define OSRS_P (0x0 << 2)
+#define OSRS_T (0x1 << 5)
 
 struct comp_params {
 	unsigned short dig_T1;
@@ -15,32 +15,37 @@ struct comp_params {
 	short dig_T3;
 };
 
-static int init_sensor(struct i2c_client *client) {
+static int init_sensor(struct i2c_client *client)
+{
 	const char opts[] = {CTRL_MEAS_ADDR, MODE | OSRS_P | OSRS_T};
 
 	return i2c_master_send(client, opts, 2);
 }
 
-static int read_data(struct i2c_client *client, char *buf, char start_addr, int count) {
+static int read_data(struct i2c_client *client, char *buf, char start_addr,
+		     int count)
+{
 	int ret = 0;
+
 	ret = i2c_master_send(client, &start_addr, 1);
-	if (ret < 0) {
+	if (ret < 0)
 		dev_err(&client->dev, "%s [send_addr]: %d\n", __func__, ret);
-	}
+
 	ret = i2c_master_recv(client, buf, count);
-	if (ret < 0) {
+	if (ret < 0)
 		dev_err(&client->dev, "%s [recv_data]: %d\n", __func__, ret);
-	}
+
 	return ret;
 }
 
-static struct comp_params get_comp_params(struct i2c_client *client) {
+static struct comp_params get_comp_params(struct i2c_client *client)
+{
 	char buf[6];
 	int ret;
+
 	ret = read_data(client, buf, COMP_PARPAM_ADDR, 6);
-	if (ret < 0) {
+	if (ret < 0)
 		dev_err(&client->dev, "%s: %d\n", __func__, ret);
-	}
 
 	return (struct comp_params) {
 		.dig_T1 = buf[1] << 8 | buf[0],
@@ -49,16 +54,18 @@ static struct comp_params get_comp_params(struct i2c_client *client) {
 	};
 }
 
-// Returns temperature in DegC, resolution is 0.01 DegC. Output value of “5123” equals 51.23 DegC.
+// Returns temperature in DegC, resolution is 0.01 DegC. Output value of
+// "5123" equals 51.23 DegC.
 static int compensate_temp(int adc_T, struct comp_params *params)
 {
 	unsigned short dig_T1 = params->dig_T1;
 	short dig_T2 = params->dig_T2;
 	short dig_T3 = params->dig_T3;
-
 	int var1, var2, T;
+
 	var1 = ((((adc_T>>3) - ((int)dig_T1<<1))) * ((int)dig_T2)) >> 11;
-	var2 = (((((adc_T>>4) - ((int)dig_T1)) * ((adc_T>>4) - ((int)dig_T1))) >> 12) * ((int)dig_T3)) >> 14;
+	var2 = (((((adc_T>>4) - ((int)dig_T1)) * ((adc_T>>4) -
+			((int)dig_T1))) >> 12) * ((int)dig_T3)) >> 14;
 	T = ((var1 + var2) * 5 + 128) >> 8;
 	return T;
 }
@@ -69,18 +76,20 @@ static int get_temp(struct i2c_client *client)
 	int ret;
 	int temp;
 	struct comp_params *params = i2c_get_clientdata(client);
-	
+
 	init_sensor(client);
 	ret = read_data(client, recv_buf, 0xFA, 3);
-	if (ret < 0) {
+	if (ret < 0)
 		dev_err(&client->dev, "%s: %d\n", __func__, ret);
-	}
-	temp = recv_buf[0] << 12 | recv_buf[1] << 4 | ((recv_buf[2] >> 4) & 0x0F0);
+
+	temp = recv_buf[0] << 12 | recv_buf[1] << 4 |
+			((recv_buf[2] >> 4) & 0x0F0);
 	temp = compensate_temp(temp, params);
 	return temp;
 }
 
-static ssize_t show_temp(struct device *dev,struct device_attribute *attr, char *buf)
+static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
+			 char *buf)
 {
 	int temp;
 	struct i2c_client *client = to_i2c_client(dev);
@@ -93,15 +102,20 @@ static ssize_t show_temp(struct device *dev,struct device_attribute *attr, char 
 static struct device_attribute dev_attr_temp = {
 	.attr = {
 		.name = "temperature",
-		.mode = S_IRUGO,
+		.mode = 0444,
 	},
 	.show = show_temp,
 };
 
 
-static int i2c_bme_probe(struct i2c_client *client, const struct i2c_device_id *id) {
+static int i2c_bme_probe(struct i2c_client *client,
+			 const struct i2c_device_id *id)
+{
 	int ret;
-	struct comp_params *params = devm_kzalloc(&client->dev, sizeof(struct comp_params), GFP_KERNEL);
+	struct comp_params *params = devm_kzalloc(&client->dev,
+						  sizeof(struct comp_params),
+						  GFP_KERNEL);
+
 	if (!params)
 		return -ENOMEM;
 	*params = get_comp_params(client);
@@ -109,13 +123,15 @@ static int i2c_bme_probe(struct i2c_client *client, const struct i2c_device_id *
 	// create temperature file
 	ret = device_create_file(&client->dev, &dev_attr_temp);
 	if (ret < 0) {
-		dev_err(&client->dev, "%s [device_create_file]: %d\n", __func__, ret);
+		dev_err(&client->dev, "%s [device_create_file]: %d\n",
+			__func__, ret);
 		return ret;
 	}
 	dev_info(&client->dev, "%s\n", __func__);
 	return 0;
 }
-static int i2c_bme_remove(struct i2c_client *client) {
+static int i2c_bme_remove(struct i2c_client *client)
+{
 	device_remove_file(&client->dev, &dev_attr_temp);
 	dev_info(&client->dev, "%s\n", __func__);
 	return 0;
@@ -130,7 +146,7 @@ static struct i2c_device_id i2c_bme_id[] = {
 // register id in kernel
 MODULE_DEVICE_TABLE(i2c, i2c_bme_id);
 
-static struct i2c_driver i2c_bme_driver = { 
+static struct i2c_driver i2c_bme_driver = {
 	.driver = {
 		.name = "i2c-bme280",
 	},
