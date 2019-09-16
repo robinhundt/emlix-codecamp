@@ -71,31 +71,41 @@ static int compensate_temp(int adc_T, struct comp_params *params)
 	return ((var1 + ((var2 * dig_T3) >> 14)) * 5 + 128) >> 8;
 }
 
-static int get_temp(struct i2c_client *client)
+static int get_temp(struct i2c_client *client, int *temp)
 {
 	char recv_buf[3];
 	int ret;
-	int temp;
 	struct comp_params *params = i2c_get_clientdata(client);
 
-	init_sensor(client);
-	ret = read_data(client, recv_buf, 0xFA, 3);
-	if (ret < 0)
-		dev_err(&client->dev, "%s: %d\n", __func__, ret);
+	ret = init_sensor(client);
+	if (ret < 0) {
+		dev_err(&client->dev, "%s: init_sensor() %d\n", __func__, ret);
+		return ret;
+	}
 
-	temp = recv_buf[0] << 12 | recv_buf[1] << 4 |
+	ret = read_data(client, recv_buf, 0xFA, 3);
+	if (ret < 0) {
+		dev_err(&client->dev, "%s: data read returned %d\n",
+			__func__, ret);
+		return ret;
+	}
+
+	*temp = recv_buf[0] << 12 | recv_buf[1] << 4 |
 			((recv_buf[2] >> 4) & 0x0F0);
-	temp = compensate_temp(temp, params);
-	return temp;
+	*temp = compensate_temp(*temp, params);
+	return 0;
 }
 
 static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
 			 char *buf)
 {
-	int temp;
+	int ret, temp;
 	struct i2c_client *client = to_i2c_client(dev);
+
 	// get temperature from sensor
-	temp = get_temp(client);
+	ret = get_temp(client, &temp);
+	if (ret < 0)
+		return ret;
 	return sprintf(buf, "%d\n", temp);
 }
 
