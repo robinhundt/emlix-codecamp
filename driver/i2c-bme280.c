@@ -113,8 +113,7 @@ static int i2c_bme_probe(struct i2c_client *client,
 {
 	int ret;
 	struct comp_params *params = devm_kzalloc(&client->dev,
-						  sizeof(struct comp_params),
-						  GFP_KERNEL);
+						  sizeof(*params), GFP_KERNEL);
 
 	if (!params)
 		return -ENOMEM;
