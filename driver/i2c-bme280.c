@@ -10,9 +10,9 @@
 #define OSRS_T (0x1 << 5)
 
 struct comp_params {
-	unsigned short dig_T1;
-	short dig_T2;
-	short dig_T3;
+	u16 dig_T1;
+	s16 dig_T2;
+	s16 dig_T3;
 };
 
 static int init_sensor(struct i2c_client *client)
