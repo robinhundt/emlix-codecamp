@@ -137,6 +137,7 @@ static int i2c_bme_probe(struct i2c_client *client,
 	// create temperature file
 	ret = device_create_file(&client->dev, &dev_attr_temp);
 	if (ret < 0) {
+		i2c_set_clientdata(client, NULL);
 		dev_err(&client->dev, "%s [device_create_file]: %d\n",
 			__func__, ret);
 		return ret;
