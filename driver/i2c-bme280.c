@@ -145,9 +145,11 @@ static int i2c_bme_probe(struct i2c_client *client,
 	dev_info(&client->dev, "%s\n", __func__);
 	return 0;
 }
+
 static int i2c_bme_remove(struct i2c_client *client)
 {
 	device_remove_file(&client->dev, &dev_attr_temp);
+	i2c_set_clientdata(client, NULL);
 	dev_info(&client->dev, "%s\n", __func__);
 	return 0;
 }
