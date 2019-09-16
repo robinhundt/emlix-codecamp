@@ -2,7 +2,6 @@
 #include <linux/module.h>
 #include <linux/i2c.h>
 
-
 #define CTRL_MEAS_ADDR 0xF4
 #define COMP_PARPAM_ADDR 0x88
 #define MODE 0x1
@@ -109,7 +108,6 @@ static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
 	return sprintf(buf, "%d\n", temp);
 }
 
-
 static struct device_attribute dev_attr_temp = {
 	.attr = {
 		.name = "temperature",
@@ -117,7 +115,6 @@ static struct device_attribute dev_attr_temp = {
 	},
 	.show = show_temp,
 };
-
 
 static int i2c_bme_probe(struct i2c_client *client,
 			 const struct i2c_device_id *id)
@@ -171,4 +168,3 @@ module_i2c_driver(i2c_bme_driver);
 MODULE_AUTHOR("Laura Pede, Matthias Nuske, Thilo Wischmeyer, Fabiola Buschendorf, Maximilian David Eipper, Robin Hundt");
 MODULE_DESCRIPTION("A very simple driver for the bme280 sensor");
 MODULE_LICENSE("GPL");
-
