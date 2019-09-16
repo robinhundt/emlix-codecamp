@@ -42,16 +42,17 @@ static struct comp_params get_comp_params(struct i2c_client *client)
 {
 	char buf[6];
 	int ret;
+	struct comp_params vals;
 
 	ret = read_data(client, buf, COMP_PARPAM_ADDR, 6);
 	if (ret < 0)
 		dev_err(&client->dev, "%s: %d\n", __func__, ret);
 
-	return (struct comp_params) {
-		.dig_T1 = buf[1] << 8 | buf[0],
-		.dig_T2 = buf[3] << 8 | buf[2],
-		.dig_T3 = buf[5] << 8 | buf[4]
-	};
+	vals.dig_T1 = buf[1] << 8 | buf[0];
+	vals.dig_T2 = buf[3] << 8 | buf[2];
+	vals.dig_T3 = buf[5] << 8 | buf[4];
+
+	return vals;
 }
 
 // Returns temperature in DegC, resolution is 0.01 DegC. Output value of
