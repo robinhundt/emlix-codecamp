@@ -29,11 +29,13 @@ static int read_data(struct i2c_client *client, char *buf, char start_addr,
 
 	ret = i2c_master_send(client, &start_addr, 1);
 	if (ret < 0)
-		dev_err(&client->dev, "%s [send_addr]: %d\n", __func__, ret);
+		dev_err(&client->dev, "%s [send_addr %02x]: %d\n",
+			__func__, start_addr, ret);
 
 	ret = i2c_master_recv(client, buf, count);
 	if (ret < 0)
-		dev_err(&client->dev, "%s [recv_data]: %d\n", __func__, ret);
+		dev_err(&client->dev, "%s [recv_data %02x]: %d\n",
+			__func__, start_addr, ret);
 
 	return ret;
 }
