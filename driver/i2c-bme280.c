@@ -59,16 +59,14 @@ static struct comp_params get_comp_params(struct i2c_client *client)
 // "5123" equals 51.23 DegC.
 static int compensate_temp(int adc_T, struct comp_params *params)
 {
-	unsigned short dig_T1 = params->dig_T1;
-	short dig_T2 = params->dig_T2;
-	short dig_T3 = params->dig_T3;
-	int var1, var2, T;
+	int dig_T1 = params->dig_T1;
+	int dig_T2 = params->dig_T2;
+	int dig_T3 = params->dig_T3;
+	int var1, var2;
 
-	var1 = ((((adc_T>>3) - ((int)dig_T1<<1))) * ((int)dig_T2)) >> 11;
-	var2 = (((((adc_T>>4) - ((int)dig_T1)) * ((adc_T>>4) -
-			((int)dig_T1))) >> 12) * ((int)dig_T3)) >> 14;
-	T = ((var1 + var2) * 5 + 128) >> 8;
-	return T;
+	var1 = ((((adc_T >> 3) - (dig_T1 << 1))) * dig_T2) >> 11;
+	var2 = (((adc_T >> 4) - dig_T1) * ((adc_T >> 4) - dig_T1)) >> 12;
+	return ((var1 + ((var2 * dig_T3) >> 14)) * 5 + 128) >> 8;
 }
 
 static int get_temp(struct i2c_client *client)
