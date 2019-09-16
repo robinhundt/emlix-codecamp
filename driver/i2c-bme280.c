@@ -97,8 +97,8 @@ static int get_temp(struct i2c_client *client, int *temp)
 	return 0;
 }
 
-static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
-			 char *buf)
+static ssize_t temperature_show(struct device *dev,
+				struct device_attribute *attr, char *buf)
 {
 	int ret, temp;
 	struct i2c_client *client = to_i2c_client(dev);
@@ -110,13 +110,7 @@ static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
 	return sprintf(buf, "%d\n", temp);
 }
 
-static struct device_attribute dev_attr_temp = {
-	.attr = {
-		.name = "temperature",
-		.mode = 0444,
-	},
-	.show = show_temp,
-};
+DEVICE_ATTR_RO(temperature);
 
 static int i2c_bme_probe(struct i2c_client *client,
 			 const struct i2c_device_id *id)
@@ -135,7 +129,7 @@ static int i2c_bme_probe(struct i2c_client *client,
 	}
 	i2c_set_clientdata(client, params);
 	// create temperature file
-	ret = device_create_file(&client->dev, &dev_attr_temp);
+	ret = device_create_file(&client->dev, &dev_attr_temperature);
 	if (ret < 0) {
 		i2c_set_clientdata(client, NULL);
 		dev_err(&client->dev, "%s [device_create_file]: %d\n",
@@ -148,7 +142,7 @@ static int i2c_bme_probe(struct i2c_client *client,
 
 static int i2c_bme_remove(struct i2c_client *client)
 {
-	device_remove_file(&client->dev, &dev_attr_temp);
+	device_remove_file(&client->dev, &dev_attr_temperature);
 	i2c_set_clientdata(client, NULL);
 	dev_info(&client->dev, "%s\n", __func__);
 	return 0;
